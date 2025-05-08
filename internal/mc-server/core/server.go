@@ -2,16 +2,17 @@ package core
 
 import (
 	"fmt"
-	"github.com/candbright/go-log/log"
-	"github.com/candbright/go-server/internal/mc-server/core/model"
-	"github.com/candbright/go-server/pkg/config"
-	"github.com/candbright/go-server/pkg/dw"
-	"github.com/pkg/errors"
 	"os"
 	"path"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/candbright/go-log/log"
+	"github.com/candbright/go-server/internal/mc-server/core/model"
+	"github.com/candbright/go-server/pkg/config"
+	"github.com/candbright/go-server/pkg/dw"
+	"github.com/pkg/errors"
 )
 
 type ServerConfig struct {
@@ -58,6 +59,11 @@ func (server *Server) WorkDir() string {
 
 func (server *Server) WorldsDir() string {
 	return path.Join(server.WorkDir(), "worlds")
+}
+
+func (server *Server) WorldDataDir() string {
+	serverName := server.serverProperties.Data["server-name"]
+	return path.Join(server.WorkDir(), "worlds", serverName)
 }
 
 func (server *Server) AllowListFilePath() string {
@@ -288,4 +294,39 @@ func (server *Server) GetAllowList() (model.AllowList, error) {
 		return nil, err
 	}
 	return w.Data, nil
+}
+
+// ApplySave 将存档应用到服务器
+func (server *Server) ApplySave(savePath string) error {
+	// 检查服务器是否存在
+	if !server.ServerExist() {
+		return errors.New("服务器不存在")
+	}
+
+	// 检查存档文件是否存在
+	if !Exists(savePath) {
+		return errors.New("存档文件不存在")
+	}
+
+	// 获取世界数据目录
+	worldDataDir := server.WorldDataDir()
+
+	// 如果世界目录存在，先删除它
+	if Exists(worldDataDir) {
+		if err := os.RemoveAll(worldDataDir); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	// 创建新的世界目录
+	if err := os.MkdirAll(worldDataDir, 0755); err != nil {
+		return errors.WithStack(err)
+	}
+
+	// 解压存档到世界目录
+	if err := Unzip(savePath, worldDataDir); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
 }

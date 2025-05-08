@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -13,6 +14,13 @@ import (
 	"github.com/candbright/go-server/pkg/downloader"
 )
 
+type SaveInfo struct {
+	Name         string    `json:"name"`
+	Size         int64     `json:"size"`
+	LastModified time.Time `json:"lastModified"`
+	Path         string    `json:"path"`
+}
+
 type ServerManagerConfig struct {
 	RootDir      string
 	LoadInterval time.Duration
@@ -21,8 +29,9 @@ type ServerManagerConfig struct {
 
 type ServerManager struct {
 	rootDir      string
-	servers      *sync.Map //key: id
-	downloaders  *sync.Map //key: version
+	servers      *sync.Map // key: server-id, value: *Server，存储所有服务器实例
+	downloaders  *sync.Map // key: version, value: *downloader.Downloader，存储每个版本的下载器实例
+	saves        *sync.Map // key: filename, value: SaveInfo，存储所有存档信息
 	loadInterval time.Duration
 	cacheTTL     time.Duration
 	lastLoad     time.Time
@@ -41,18 +50,28 @@ func NewServersManager(cfg ServerManagerConfig) *ServerManager {
 		rootDir:      cfg.RootDir,
 		servers:      &sync.Map{},
 		downloaders:  &sync.Map{},
+		saves:        &sync.Map{},
 		loadInterval: cfg.LoadInterval,
 		cacheTTL:     cfg.CacheTTL,
 		lastLoad:     time.Now().Add(-cfg.CacheTTL), // 设置为一个已经过期的时间，确保第一次加载会执行
 	}
 
-	// 初始化时加载一次
+	// 初始化时加载一次服务器列表
 	if err := ssm.LoadServers(); err != nil {
 		log.WithError(err).Error("Failed to load servers during initialization")
 	}
 
+	// 初始化时扫描一次存档目录
+	if err := ssm.ScanSaves(); err != nil {
+		log.WithError(err).Error("Failed to scan saves during initialization")
+	}
+
 	// 启动定期加载
 	ssm.StartLoadServers()
+
+	// 启动存档扫描
+	ssm.StartScanSaves()
+
 	return ssm
 }
 
@@ -137,6 +156,7 @@ func (manager *ServerManager) DownloadVersion(version string) error {
 	}
 }
 
+// LoadServers 加载服务器列表
 func (manager *ServerManager) LoadServers() error {
 	manager.mu.Lock()
 	defer manager.mu.Unlock()
@@ -323,3 +343,76 @@ func (manager *ServerManager) Upgrade() error {
 	return nil
 }
 */
+
+// UploadDir 返回上传目录的路径
+func (manager *ServerManager) UploadDir() string {
+	return path.Join(manager.rootDir, "uploads")
+}
+
+// GetSaves 获取所有存档信息
+func (manager *ServerManager) GetSaves() map[string]SaveInfo {
+	saves := make(map[string]SaveInfo)
+	manager.saves.Range(func(key, value interface{}) bool {
+		saves[key.(string)] = value.(SaveInfo)
+		return true
+	})
+	return saves
+}
+
+// StartScanSaves 启动定期扫描存档的任务
+func (manager *ServerManager) StartScanSaves() {
+	go func() {
+		ticker := time.NewTicker(manager.loadInterval)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			if err := manager.ScanSaves(); err != nil {
+				log.WithError(err).Error("Failed to scan saves")
+			}
+		}
+	}()
+}
+
+// ScanSaves 扫描存档目录
+func (manager *ServerManager) ScanSaves() error {
+	manager.mu.Lock()
+	defer manager.mu.Unlock()
+
+	// 确保上传目录存在
+	uploadDir := manager.UploadDir()
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return fmt.Errorf("failed to create upload directory: %w", err)
+	}
+
+	// 创建新的存档映射
+	newSaves := &sync.Map{}
+
+	err := filepath.Walk(uploadDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 处理 .mcworld 和 .zip 文件
+		if !info.IsDir() {
+			ext := filepath.Ext(path)
+			if ext == ".mcworld" || ext == ".zip" {
+				saveInfo := SaveInfo{
+					Name:         info.Name(),
+					Size:         info.Size(),
+					LastModified: info.ModTime(),
+					Path:         path,
+				}
+				newSaves.Store(info.Name(), saveInfo)
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to scan saves directory: %w", err)
+	}
+
+	// 原子性更新存档列表
+	manager.saves = newSaves
+	return nil
+}

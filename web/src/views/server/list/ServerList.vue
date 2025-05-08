@@ -1,71 +1,78 @@
 <template>
-  <div>
-    <el-table :data="tableData" v-loading="loading" border style="width: 100%;height: 100%;"
-              :highlight-current-row="false" @row-dblclick="handleRowDblClick">
-      <el-table-column prop="id" label="ID" width="%10" align="center"></el-table-column>
-      <el-table-column prop="name" label="服务器名称" width="%20" align="center"></el-table-column>
-      <el-table-column prop="version" label="版本" width="%20" align="center">
-        <template #default="{ row }">
-          <div>
-            <div v-if="row.version === ''">暂无</div>
-            <div v-else>{{ row.version }}</div>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="%30" align="center">
-        <template #default="{ row }">
-          <div>
-            <el-row justify="space-around">
-              <el-col :span="2" v-if="row.downloading">
-                <el-button type="primary" loading circle/>
-              </el-col>
-              <el-col :span="2" v-if="!row.downloading && row.version !== ''">
-                <el-button type="primary" :icon="Upload" circle @click="upGrade"/>
-              </el-col>
-              <el-col :span="2" v-if="!row.downloading && row.version === ''">
-                <el-button type="primary" :loading="row.downloading" :icon="Download" circle
-                           @click="downloadLatestVersion(row.id)"/>
-              </el-col>
-              <el-col :span="2" v-if="!row.active">
-                <el-button type="success" :disabled="!row.exist" :icon="CaretRight"
-                           circle
-                           @click="startServer(row)"/>
-              </el-col>
-              <el-col :span="2" v-if="row.active">
-                <el-button type="danger" :disabled="!row.exist" :icon="Close"
-                           circle
-                           @click="stopServer(row)"/>
-              </el-col>
-              <el-col :span="2">
-                <el-button type="primary" :disabled="!row.exist" :icon="Edit"
-                           circle
-                           @click="editServerInfo(row.id)"/>
-              </el-col>
-              <el-col :span="2">
-                <el-button type="danger" :disabled="!row.exist" :icon="Delete"
-                           circle
-                           @click="deleteServer(row.id)"/>
-              </el-col>
-            </el-row>
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="pagination-container">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :background="true"
-        prev-text="上一页"
-        next-text="下一页"
-        total-text="总计"
-        :page-size-text="'条/页'"
-      />
+  <div class="server-list-container">
+    <div class="page-header">
+      <h1>服务器列表</h1>
+      <p class="subtitle">管理你的 Minecraft 服务器</p>
+    </div>
+
+    <div class="server-list-content">
+      <el-table :data="tableData" v-loading="loading" border style="width: 100%"
+                :highlight-current-row="false" @row-dblclick="handleRowDblClick">
+        <el-table-column prop="id" label="ID" width="%10" align="center"></el-table-column>
+        <el-table-column prop="name" label="服务器名称" width="%20" align="center"></el-table-column>
+        <el-table-column prop="version" label="版本" width="%20" align="center">
+          <template #default="{ row }">
+            <div>
+              <div v-if="row.version === ''">暂无</div>
+              <div v-else>{{ row.version }}</div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="%30" align="center">
+          <template #default="{ row }">
+            <div @dblclick.stop>
+              <el-row justify="space-around">
+                <el-col :span="2" v-if="row.downloading">
+                  <el-button type="primary" loading circle/>
+                </el-col>
+                <el-col :span="2" v-if="!row.downloading && row.version !== ''">
+                  <el-button type="primary" :icon="Upload" circle @click="upGrade"/>
+                </el-col>
+                <el-col :span="2" v-if="!row.downloading && row.version === ''">
+                  <el-button type="primary" :loading="row.downloading" :icon="Download" circle
+                             @click="downloadLatestVersion(row.id)"/>
+                </el-col>
+                <el-col :span="2" v-if="!row.active">
+                  <el-button type="success" :disabled="!row.exist" :icon="CaretRight"
+                             circle
+                             @click="startServer(row)"/>
+                </el-col>
+                <el-col :span="2" v-if="row.active">
+                  <el-button type="danger" :disabled="!row.exist" :icon="Close"
+                             circle
+                             @click="stopServer(row)"/>
+                </el-col>
+                <el-col :span="2">
+                  <el-button type="primary" :disabled="!row.exist" :icon="Edit"
+                             circle
+                             @click="editServerInfo(row.id)"/>
+                </el-col>
+                <el-col :span="2">
+                  <el-button type="danger" :disabled="!row.exist" :icon="Delete"
+                             circle
+                             @click="deleteServer(row.id)"/>
+                </el-col>
+              </el-row>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :background="true"
+          prev-text="上一页"
+          next-text="下一页"
+          total-text="总计"
+          :page-size-text="'条/页'"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -311,6 +318,32 @@ export default {
 </script>
 
 <style scoped>
+.server-list-container {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 40px;
+}
+
+.page-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 18px;
+  color: var(--el-text-color-secondary);
+}
+
+.server-list-content {
+  margin-bottom: 20px;
+}
+
 .pagination-container {
   margin-top: 20px;
   display: flex;

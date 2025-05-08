@@ -19,7 +19,12 @@ export default defineConfig({
         target: 'http://127.0.0.1:11223', // 后端地址
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
-  },
+        timeout: 300000, // 5分钟超时
+        proxyTimeout: 300000,
+        headers: {
+          'Connection': 'keep-alive'
+        }
+      }
+    }
+  }
 })
