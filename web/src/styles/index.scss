@@ -1,0 +1,29 @@
+body {
+  height: 100%;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#app {
+  height: 100%;
+  width:100%;
+  box-sizing: border-box;
+}
+
+
+.container {
+  padding: 10px;
+  height: 100%;
+  overflow: auto;
+}
+
+.container-aside {
+  height: 100%;
+  width: 100px;
+  border-right: 2px solid gray;
+}

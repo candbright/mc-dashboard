@@ -1,0 +1,17 @@
+server:
+  name: server-mc
+  port: 11223
+  username: admin
+  password: admin@123
+log:
+  path:
+    windows: E:\minecraft\server.log
+    linux: /opt/minecraft/server.log
+  debug: true
+  level:
+    default: debug
+    env: ${MS_LOG_LEVEL}
+mc:
+  path:
+    windows: E:\minecraft
+    linux: /opt/minecraft
