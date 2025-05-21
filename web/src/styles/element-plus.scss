@@ -1,0 +1,134 @@
+//输入框样式
+.el-input {
+  @apply bg-gray-800;
+}
+
+// 弹框样式
+.el-dialog {
+  @apply bg-gray-800 p-2 rounded-xl;
+
+  .el-dialog__header {
+    @apply p-5 border-b border-white/10;
+  }
+
+  .el-dialog__title {
+    @apply text-white font-semibold;
+  }
+
+  .el-dialog__body {
+    @apply p-5 text-gray-400;
+  }
+
+  .el-dialog__footer {
+    @apply p-5 border-t border-white/10;
+  }
+}
+
+.el-card {
+  @apply bg-gray-800 border border-white/10 rounded-2xl;
+
+  .el-card__header {
+    @apply p-4 border-b border-white/10;
+  }
+}
+
+// 表单样式
+.el-form {
+  .el-form-item__label {
+    @apply text-gray-400;
+  }
+
+  .el-input__wrapper {
+    @apply bg-transparent;
+  }
+
+  .el-input__inner {
+    @apply text-white;
+  }
+
+  .el-textarea__inner {
+    @apply bg-gray-800 text-white border-gray-700;
+    
+    &:hover {
+      @apply border-gray-600;
+    }
+  }
+}
+
+// 进度条样式
+.el-progress {
+  .el-progress-bar__outer {
+    @apply bg-white/10;
+  }
+}
+
+// 加载样式
+.el-loading-mask {
+  @apply bg-gray-900/70;
+}
+
+.el-loading-spinner {
+  .circular {
+    @apply w-[42px] h-[42px];
+    animation: loading-rotate 2s linear infinite;
+  }
+
+  .path {
+    @apply stroke-emerald-400;
+  }
+
+  .el-loading-text {
+    @apply text-emerald-400 text-sm my-1;
+  }
+}
+
+@keyframes loading-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// MessageBox 样式
+.el-message-box {
+  @apply bg-gray-800 border border-white/10 rounded-xl;
+
+  &__header {
+    @apply p-4 border-b border-white/10;
+  }
+
+  &__title {
+    @apply text-lg font-semibold text-white;
+  }
+
+  &__content {
+    @apply p-4 text-gray-200;
+  }
+
+  &__btns {
+    @apply p-4 border-t border-white/10;
+  }
+
+  &__message {
+    @apply text-gray-200;
+  }
+
+  &__input {
+    @apply mt-2;
+
+    .el-input__wrapper {
+      @apply bg-gray-700 border border-white/10;
+    }
+
+    .el-input__inner {
+      @apply text-gray-200;
+    }
+  }
+
+  &__status {
+    @apply text-emerald-500;
+  }
+
+  &__message p {
+    @apply text-gray-200;
+  }
+} 
