@@ -1,0 +1,961 @@
+basePath: /api/v1
+definitions:
+  domain.AllowListUser:
+    properties:
+      ignores_player_limit:
+        type: boolean
+      name:
+        type: string
+      xuid:
+        type: string
+    type: object
+  domain.Save:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      last_modified:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  domain.ServerInfo:
+    properties:
+      active:
+        type: boolean
+      allow_list: {}
+      create_status: {}
+      created_at:
+        description: 创建时间
+        type: string
+      description:
+        description: 服务器描述
+        type: string
+      exist:
+        type: boolean
+      id:
+        description: 主键
+        type: integer
+      name:
+        description: 服务器名称
+        type: string
+      server_properties: {}
+      updated_at:
+        description: 更新时间
+        type: string
+      version:
+        description: 版本
+        type: string
+      world_name:
+        description: 世界名称
+        type: string
+    type: object
+  domain.User:
+    properties:
+      avatar:
+        description: 头像
+        type: string
+      created_at:
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      id:
+        type: integer
+      nickname:
+        description: 昵称
+        type: string
+      phone:
+        description: 手机号
+        type: string
+      status:
+        description: '1: 正常, 2: 禁用'
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  errors.AppError:
+    properties:
+      code:
+        description: 错误码
+        type: integer
+      data:
+        description: 返回数据
+      message:
+        description: 错误信息
+        type: string
+    type: object
+  handler.ApplySaveRequest:
+    properties:
+      save_id:
+        type: integer
+      server_id:
+        type: integer
+    required:
+    - save_id
+    - server_id
+    type: object
+  handler.ConsoleLogResponse:
+    properties:
+      content:
+        type: string
+    type: object
+  handler.CreateServerRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      version:
+        type: string
+      world_name:
+        type: string
+    required:
+    - name
+    type: object
+  handler.LoginRequest:
+    properties:
+      account:
+        example: "13800138000"
+        type: string
+      credential:
+        example: "123456"
+        type: string
+      login_type:
+        enum:
+        - phone_password
+        - email_password
+        - phone_code
+        example: phone_password
+        type: string
+    required:
+    - account
+    - credential
+    - login_type
+    type: object
+  handler.LoginResponse:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  handler.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: "123456"
+        minLength: 6
+        type: string
+      phone:
+        example: "13800138000"
+        type: string
+    required:
+    - password
+    - phone
+    type: object
+  handler.SystemStatus:
+    properties:
+      arch:
+        description: 系统架构
+        type: string
+      cpu_usage:
+        description: CPU使用率
+        type: number
+      disk_total:
+        description: 总磁盘空间（字节）
+        type: integer
+      disk_used:
+        description: 已用磁盘空间（字节）
+        type: integer
+      memory_total:
+        description: 总内存（字节）
+        type: integer
+      memory_used:
+        description: 已用内存（字节）
+        type: integer
+      os:
+        description: 操作系统
+        type: string
+      uptime:
+        description: 系统运行时间（秒）
+        type: integer
+    type: object
+  handler.UpdateServerRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+host: localhost:11223
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: MC Dashboard 后端服务API文档
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: MC Dashboard API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录接口，支持手机号密码、邮箱密码、手机验证码登录
+      parameters:
+      - description: 登录信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      summary: 用户登录
+      tags:
+      - 用户管理
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: 用户注册接口
+      parameters:
+      - description: 注册信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      summary: 用户注册
+      tags:
+      - 用户管理
+  /saves:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有存档文件列表
+      parameters:
+      - default: 0
+        description: 页码，从1开始
+        in: query
+        name: page
+        type: integer
+      - default: 0
+        description: 每页数量
+        in: query
+        name: size
+        type: integer
+      - default: desc
+        description: 排序方向，asc或desc
+        in: query
+        name: order
+        type: string
+      - default: create_at
+        description: 排序字段，支持id/name/version
+        in: query
+        name: orderBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Save'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 获取存档列表
+      tags:
+      - 存档管理
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传新的存档文件
+      parameters:
+      - description: 存档文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Save'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 上传存档
+      tags:
+      - 存档管理
+  /saves/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的存档文件
+      parameters:
+      - description: 存档id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 删除存档
+      tags:
+      - 存档管理
+  /saves/apply:
+    post:
+      consumes:
+      - application/json
+      description: 将指定的存档应用到服务器
+      parameters:
+      - description: 存档应用参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.ApplySaveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 应用存档
+      tags:
+      - 存档管理
+  /servers:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有服务器的列表，支持分页和排序
+      parameters:
+      - default: 0
+        description: 页码，从1开始
+        in: query
+        name: page
+        type: integer
+      - default: 0
+        description: 每页数量
+        in: query
+        name: size
+        type: integer
+      - default: desc
+        description: 排序方向，asc或desc
+        in: query
+        name: order
+        type: string
+      - default: created_at
+        description: 排序字段，支持id/name/version
+        in: query
+        name: orderBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器列表
+          schema:
+            items:
+              $ref: '#/definitions/domain.ServerInfo'
+            type: array
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 获取服务器列表
+      tags:
+      - 服务器
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新的Minecraft服务器
+      parameters:
+      - description: 服务器创建参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateServerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器创建成功
+          schema:
+            type: string
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 创建服务器
+      tags:
+      - 服务器
+  /servers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的Minecraft服务器
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器删除成功
+          schema:
+            type: string
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 删除服务器
+      tags:
+      - 服务器
+    get:
+      consumes:
+      - application/json
+      description: 根据服务器ID获取服务器详细信息
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器信息
+          schema:
+            $ref: '#/definitions/domain.ServerInfo'
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 获取服务器信息
+      tags:
+      - 服务器
+    put:
+      consumes:
+      - application/json
+      description: 修改服务器的配置信息
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 服务器更新参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateServerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器编辑成功
+          schema:
+            type: string
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 编辑服务器
+      tags:
+      - 服务器
+  /servers/{id}/allowlist:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定服务器的白名单用户列表
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 白名单用户列表
+          schema:
+            items:
+              $ref: '#/definitions/domain.AllowListUser'
+            type: array
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 获取白名单列表
+      tags:
+      - 服务器
+  /servers/{id}/allowlist/{username}:
+    delete:
+      consumes:
+      - application/json
+      description: 从服务器的白名单中删除指定用户
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 用户名
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除白名单用户成功
+          schema:
+            type: string
+        "404":
+          description: 服务器不存在或用户不在白名单中
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 删除白名单用户
+      tags:
+      - 服务器
+    post:
+      consumes:
+      - application/json
+      description: 将指定用户添加到服务器的白名单中
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 用户名
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 添加白名单用户成功
+          schema:
+            type: string
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 添加白名单用户
+      tags:
+      - 服务器
+  /servers/{id}/console_log:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定服务器的控制台日志
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 100
+        description: 获取最后几行日志
+        in: query
+        name: line
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 日志内容
+          schema:
+            $ref: '#/definitions/handler.ConsoleLogResponse'
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 获取控制台日志
+      tags:
+      - 服务器
+  /servers/{id}/server_properties:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定服务器的所有属性配置
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器属性
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 获取服务器属性
+      tags:
+      - 服务器
+    put:
+      consumes:
+      - application/json
+      description: 更新指定服务器的属性配置
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 服务器属性
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器属性更新成功
+          schema:
+            type: string
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 更新服务器属性
+      tags:
+      - 服务器
+  /servers/{id}/start:
+    post:
+      consumes:
+      - application/json
+      description: 启动指定的Minecraft服务器
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器启动成功
+          schema:
+            type: string
+        "400":
+          description: 服务器已经在运行
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 启动服务器
+      tags:
+      - 服务器
+  /servers/{id}/stop:
+    post:
+      consumes:
+      - application/json
+      description: 停止指定的Minecraft服务器
+      parameters:
+      - description: 服务器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器停止成功
+          schema:
+            type: string
+        "400":
+          description: 服务器未在运行
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "404":
+          description: 服务器不存在
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 停止服务器
+      tags:
+      - 服务器
+  /system/status:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前系统的运行状态，包括CPU、内存、磁盘使用情况等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 系统状态信息
+          schema:
+            $ref: '#/definitions/handler.SystemStatus'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 获取系统状态
+      tags:
+      - 系统
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户的信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 获取用户信息
+      tags:
+      - 用户管理
+  /user/logout:
+    post:
+      consumes:
+      - application/json
+      description: 用户登出接口，清除用户登录状态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 登出成功
+          schema:
+            type: string
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      security:
+      - Bearer: []
+      summary: 用户登出
+      tags:
+      - 用户管理
+schemes:
+- http
+- https
+securityDefinitions:
+  Bearer:
+    description: 请输入Bearer token，格式为：Bearer <token>
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

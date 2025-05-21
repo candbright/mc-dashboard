@@ -1,0 +1,29 @@
+server:
+  port: 11223
+  mode: debug
+  timeout: 30s
+
+database:
+  driver: mysql
+  host: localhost
+  port: 3306
+  username: root
+  password: root@123
+  dbname: mc_dashboard
+  charset: utf8mb4
+  max_idle_conns: 10
+  max_open_conns: 100
+
+mc:
+  path: E:\minecraft
+
+jwt:
+  secret: candbright_mc_dashboard
+  expire_hours: 72
+
+sms:
+  provider: aliyun
+  access_key: your-access-key
+  access_secret: your-access-secret
+  sign_name: your-sign-name
+  template_code: your-template-code 
